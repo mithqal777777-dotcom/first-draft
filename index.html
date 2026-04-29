@@ -2,8 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>My Budget Tracker</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#667eea" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Budget" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -324,6 +339,175 @@
     }
     #toast.show { opacity: 1; }
 
+    /* ── PWA Install banner ── */
+    #install-banner {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      border-top: 1px solid #e2e8f0;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+      padding: 16px 20px;
+      z-index: 1000;
+      align-items: center;
+      gap: 14px;
+    }
+    #install-banner.show { display: flex; }
+
+    .install-icon {
+      width: 52px; height: 52px;
+      border-radius: 12px;
+      flex-shrink: 0;
+      object-fit: cover;
+    }
+
+    .install-text { flex: 1; }
+    .install-text strong { display: block; font-size: 0.95rem; color: #2d3748; margin-bottom: 2px; }
+    .install-text span   { font-size: 0.78rem; color: #718096; }
+
+    .install-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    .btn-install {
+      background: #667eea;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-install:hover { background: #5a67d8; }
+
+    .btn-dismiss {
+      background: transparent;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.88rem;
+      color: #718096;
+      cursor: pointer;
+    }
+
+    /* iOS instruction sheet */
+    #ios-sheet {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -4px 30px rgba(0,0,0,0.18);
+      padding: 20px 24px 36px;
+      z-index: 1001;
+    }
+    #ios-sheet.show { display: block; }
+
+    .ios-handle {
+      width: 40px; height: 4px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      margin: 0 auto 18px;
+    }
+
+    .ios-sheet-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .ios-sheet-header img {
+      width: 60px; height: 60px;
+      border-radius: 14px;
+    }
+
+    .ios-sheet-header div strong { display: block; font-size: 1rem; color: #2d3748; }
+    .ios-sheet-header div span   { font-size: 0.8rem; color: #718096; }
+
+    .ios-steps { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+
+    .ios-step {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 0.9rem;
+      color: #4a5568;
+    }
+
+    .ios-step-num {
+      width: 28px; height: 28px;
+      background: #667eea;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+
+    .ios-emoji { font-size: 1.3rem; }
+
+    .btn-close-ios {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      background: #f0f4f8;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #4a5568;
+      cursor: pointer;
+    }
+
+    /* overlay for iOS sheet */
+    #ios-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 1000;
+    }
+    #ios-overlay.show { display: block; }
+
+    /* ── Mobile responsive ── */
+    @media (max-width: 520px) {
+      body { padding: 12px 10px; }
+
+      h1 { font-size: 1.4rem; }
+
+      .card { padding: 16px 14px; }
+
+      .summary { gap: 8px; }
+      .summary-item strong { font-size: 1.2rem; }
+
+      .form-grid { grid-template-columns: 1fr; }
+
+      .tabs { flex-direction: column; }
+
+      .sessions-row { gap: 8px; }
+      .session-badge { font-size: 0.78rem; padding: 4px 10px; }
+
+      .filter-bar { flex-direction: column; }
+      .filter-bar .select-wrap { width: 100%; }
+
+      .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+      .install-actions { flex-direction: column; }
+      .btn-install, .btn-dismiss { width: 100%; text-align: center; }
+
+      #install-banner { flex-wrap: wrap; }
+    }
+
+    /* Safe area for notched phones */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      #install-banner { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+      #ios-sheet      { padding-bottom: calc(36px + env(safe-area-inset-bottom)); }
+    }
+
     /* ── Print button ── */
     .btn-print {
       background: #667eea;
@@ -486,6 +670,47 @@
   </style>
 </head>
 <body>
+
+<!-- ── PWA Install Banner (Android / desktop Chrome) ── -->
+<div id="install-banner">
+  <img class="install-icon" src="icons/icon-192.png" alt="App icon" />
+  <div class="install-text">
+    <strong>Install Budget Tracker</strong>
+    <span>Add to your home screen for quick access</span>
+  </div>
+  <div class="install-actions">
+    <button class="btn-install" id="btn-install">Install</button>
+    <button class="btn-dismiss" id="btn-dismiss">Not now</button>
+  </div>
+</div>
+
+<!-- ── iOS Install Sheet ── -->
+<div id="ios-overlay" onclick="closeIosSheet()"></div>
+<div id="ios-sheet">
+  <div class="ios-handle"></div>
+  <div class="ios-sheet-header">
+    <img src="icons/apple-touch-icon.png" alt="App icon" />
+    <div>
+      <strong>Install Budget Tracker</strong>
+      <span>Add to your iPhone home screen</span>
+    </div>
+  </div>
+  <ul class="ios-steps">
+    <li class="ios-step">
+      <div class="ios-step-num">1</div>
+      <span>Tap the <strong>Share</strong> button <span class="ios-emoji">⬆️</span> at the bottom of Safari</span>
+    </li>
+    <li class="ios-step">
+      <div class="ios-step-num">2</div>
+      <span>Scroll down and tap <strong>"Add to Home Screen"</strong> <span class="ios-emoji">➕</span></span>
+    </li>
+    <li class="ios-step">
+      <div class="ios-step-num">3</div>
+      <span>Tap <strong>"Add"</strong> — the app icon will appear on your home screen <span class="ios-emoji">🎉</span></span>
+    </li>
+  </ul>
+  <button class="btn-close-ios" onclick="closeIosSheet()">Got it</button>
+</div>
 
 <h1>My Budget Tracker</h1>
 <p class="subtitle">All data is saved automatically in your browser</p>
@@ -994,6 +1219,65 @@
 
     document.getElementById('print-report').innerHTML = html;
     window.print();
+  }
+
+  // ── PWA: Service Worker ──────────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('./sw.js')
+        .catch(function(err) { console.warn('SW registration failed:', err); });
+    });
+  }
+
+  // ── PWA: Install prompt ───────────────────────────────────────
+  var deferredPrompt = null;
+  var banner  = document.getElementById('install-banner');
+  var btnInst = document.getElementById('btn-install');
+  var btnDism = document.getElementById('btn-dismiss');
+
+  function isIos() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent);
+  }
+  function isInStandaloneMode() {
+    return window.navigator.standalone === true ||
+           window.matchMedia('(display-mode: standalone)').matches;
+  }
+
+  // Android / Chrome: capture the install event
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!localStorage.getItem('pwa_dismissed')) {
+      banner.classList.add('show');
+    }
+  });
+
+  btnInst && btnInst.addEventListener('click', function() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(choice) {
+      deferredPrompt = null;
+      banner.classList.remove('show');
+    });
+  });
+
+  btnDism && btnDism.addEventListener('click', function() {
+    banner.classList.remove('show');
+    localStorage.setItem('pwa_dismissed', '1');
+  });
+
+  // iOS Safari: show manual instructions
+  if (isIos() && !isInStandaloneMode() && !localStorage.getItem('ios_sheet_dismissed')) {
+    setTimeout(function() {
+      document.getElementById('ios-sheet').classList.add('show');
+      document.getElementById('ios-overlay').classList.add('show');
+    }, 1500);
+  }
+
+  function closeIosSheet() {
+    document.getElementById('ios-sheet').classList.remove('show');
+    document.getElementById('ios-overlay').classList.remove('show');
+    localStorage.setItem('ios_sheet_dismissed', '1');
   }
 
   // ── Boot ──────────────────────────────────────────────────────
