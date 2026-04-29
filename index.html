@@ -323,6 +323,166 @@
       z-index: 999;
     }
     #toast.show { opacity: 1; }
+
+    /* ── Print button ── */
+    .btn-print {
+      background: #667eea;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-print:hover { background: #5a67d8; }
+
+    /* ── Print / PDF styles ── */
+    @media print {
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background: #fff !important;
+        color: #000 !important;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 11pt;
+        padding: 0;
+      }
+
+      /* Hide everything that's not the print report */
+      h1, .subtitle, #app-ui, #toast { display: none !important; }
+
+      /* Show only the print report */
+      #print-report { display: block !important; }
+
+      /* Page margins */
+      @page {
+        margin: 18mm 16mm;
+        size: A4 portrait;
+      }
+
+      /* Report header */
+      .pr-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 18pt;
+        padding-bottom: 10pt;
+        border-bottom: 2pt solid #2d3748;
+      }
+
+      .pr-title { font-size: 20pt; font-weight: 700; color: #2d3748; }
+      .pr-session { font-size: 10pt; color: #666; margin-top: 4pt; }
+      .pr-date { font-size: 9pt; color: #666; text-align: right; }
+
+      /* Summary boxes */
+      .pr-summary {
+        display: flex;
+        gap: 10pt;
+        margin-bottom: 18pt;
+      }
+
+      .pr-summary-box {
+        flex: 1;
+        border: 1pt solid #e2e8f0;
+        border-radius: 6pt;
+        padding: 10pt;
+        text-align: center;
+      }
+
+      .pr-summary-box .label {
+        font-size: 7.5pt;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #718096;
+        margin-bottom: 4pt;
+      }
+
+      .pr-summary-box .value {
+        font-size: 16pt;
+        font-weight: 700;
+      }
+
+      .pr-income-box  { border-top: 3pt solid #38a169; }
+      .pr-expense-box { border-top: 3pt solid #e53e3e; }
+      .pr-balance-box { border-top: 3pt solid #3182ce; }
+
+      .color-income  { color: #38a169; }
+      .color-expense { color: #e53e3e; }
+      .color-balance { color: #3182ce; }
+      .color-neg     { color: #e53e3e; }
+
+      /* Category breakdown */
+      .pr-section-title {
+        font-size: 11pt;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 8pt;
+        padding-bottom: 4pt;
+        border-bottom: 1pt solid #e2e8f0;
+      }
+
+      .pr-breakdown {
+        display: flex;
+        gap: 16pt;
+        margin-bottom: 18pt;
+      }
+
+      .pr-breakdown-col { flex: 1; }
+
+      .pr-cat-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 9.5pt;
+        padding: 3pt 0;
+        border-bottom: 0.5pt solid #f0f0f0;
+      }
+
+      .pr-cat-row .cat-name { color: #444; }
+      .pr-cat-row .cat-amt  { font-weight: 700; }
+
+      /* Transactions table */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9pt;
+        margin-bottom: 14pt;
+      }
+
+      thead tr { background: #2d3748 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      thead th { padding: 7pt 8pt; text-align: left; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.05em; }
+
+      tbody tr:nth-child(even) { background: #f7fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      tbody td { padding: 6pt 8pt; border-bottom: 0.5pt solid #e2e8f0; vertical-align: middle; }
+
+      .td-income  { color: #38a169; font-weight: 700; }
+      .td-expense { color: #e53e3e; font-weight: 700; }
+
+      .type-pill {
+        display: inline-block;
+        padding: 1pt 6pt;
+        border-radius: 10pt;
+        font-size: 7.5pt;
+        font-weight: 700;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .pill-income  { background: #f0fff4; color: #38a169; border: 0.5pt solid #38a169; }
+      .pill-expense { background: #fff5f5; color: #e53e3e; border: 0.5pt solid #e53e3e; }
+
+      /* Footer */
+      .pr-footer {
+        margin-top: 14pt;
+        font-size: 8pt;
+        color: #aaa;
+        text-align: center;
+        border-top: 0.5pt solid #e2e8f0;
+        padding-top: 8pt;
+      }
+    }
   </style>
 </head>
 <body>
@@ -330,6 +490,10 @@
 <h1>My Budget Tracker</h1>
 <p class="subtitle">All data is saved automatically in your browser</p>
 
+<!-- Hidden print report — shown only when printing -->
+<div id="print-report" style="display:none;"></div>
+
+<div id="app-ui">
 <div class="container">
 
   <!-- ── Summary ── -->
@@ -453,6 +617,7 @@
   <div class="card">
     <div class="card-header">
       <h2>Transaction History</h2>
+      <button class="btn-print" onclick="printReport()">&#x1F5A8; Print / Save PDF</button>
     </div>
     <div class="filter-bar">
       <div class="select-wrap">
@@ -472,6 +637,7 @@
   </div>
 
 </div>
+</div><!-- end #app-ui -->
 
 <div id="toast"></div>
 
@@ -730,6 +896,104 @@
         '</div>' +
       '</li>';
     }).join('');
+  }
+
+  // ── Print report ─────────────────────────────────────────────
+  function printReport() {
+    var txs    = currentTransactions().slice().reverse();
+    var session = state.currentSession;
+    var now    = new Date().toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' });
+
+    var income = 0, expenses = 0;
+    txs.forEach(function(t) {
+      if (t.type === 'income') income += t.amount;
+      else expenses += t.amount;
+    });
+    var balance = income - expenses;
+
+    // Category breakdown
+    var incCats = {}, expCats = {};
+    txs.forEach(function(t) {
+      if (t.type === 'income') {
+        incCats[t.category] = (incCats[t.category] || 0) + t.amount;
+      } else {
+        expCats[t.category] = (expCats[t.category] || 0) + t.amount;
+      }
+    });
+
+    function catRows(obj, cls) {
+      return Object.keys(obj).sort().map(function(c) {
+        return '<div class="pr-cat-row"><span class="cat-name">' + c + '</span>' +
+               '<span class="cat-amt ' + cls + '">' + fmt(obj[c]) + '</span></div>';
+      }).join('') || '<div class="pr-cat-row"><span class="cat-name" style="color:#aaa">—</span></div>';
+    }
+
+    var balClass = balance >= 0 ? 'color-balance' : 'color-neg';
+
+    var rows = txs.map(function(t) {
+      var sign    = t.type === 'income' ? '+' : '−';
+      var amtCls  = t.type === 'income' ? 'td-income' : 'td-expense';
+      var pillCls = t.type === 'income' ? 'pill-income' : 'pill-expense';
+      var label   = t.type === 'income' ? 'Income' : 'Expense';
+      var meta    = t.employer ? t.employer : '—';
+      return '<tr>' +
+        '<td>' + t.date + '</td>' +
+        '<td>' + t.description + '</td>' +
+        '<td>' + t.category + '</td>' +
+        '<td>' + meta + '</td>' +
+        '<td><span class="type-pill ' + pillCls + '">' + label + '</span></td>' +
+        '<td style="text-align:right" class="' + amtCls + '">' + sign + fmt(t.amount) + '</td>' +
+      '</tr>';
+    }).join('');
+
+    var html =
+      '<div class="pr-header">' +
+        '<div>' +
+          '<div class="pr-title">Budget Report</div>' +
+          '<div class="pr-session">Session: ' + session + '</div>' +
+        '</div>' +
+        '<div class="pr-date">Generated: ' + now + '</div>' +
+      '</div>' +
+
+      '<div class="pr-summary">' +
+        '<div class="pr-summary-box pr-income-box">' +
+          '<div class="label">Total Income</div>' +
+          '<div class="value color-income">' + fmt(income) + '</div>' +
+        '</div>' +
+        '<div class="pr-summary-box pr-expense-box">' +
+          '<div class="label">Total Expenses</div>' +
+          '<div class="value color-expense">' + fmt(expenses) + '</div>' +
+        '</div>' +
+        '<div class="pr-summary-box pr-balance-box">' +
+          '<div class="label">Balance</div>' +
+          '<div class="value ' + balClass + '">' + fmt(balance) + '</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="pr-section-title">Breakdown by Category</div>' +
+      '<div class="pr-breakdown">' +
+        '<div class="pr-breakdown-col">' +
+          '<div style="font-size:9pt;font-weight:700;color:#38a169;margin-bottom:6pt;">Income</div>' +
+          catRows(incCats, 'color-income') +
+        '</div>' +
+        '<div class="pr-breakdown-col">' +
+          '<div style="font-size:9pt;font-weight:700;color:#e53e3e;margin-bottom:6pt;">Expenses</div>' +
+          catRows(expCats, 'color-expense') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="pr-section-title">All Transactions (' + txs.length + ')</div>' +
+      '<table>' +
+        '<thead><tr>' +
+          '<th>Date</th><th>Description</th><th>Category</th><th>Employer / Source</th><th>Type</th><th style="text-align:right">Amount</th>' +
+        '</tr></thead>' +
+        '<tbody>' + (rows || '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:10pt">No transactions</td></tr>') + '</tbody>' +
+      '</table>' +
+
+      '<div class="pr-footer">My Budget Tracker &bull; ' + now + '</div>';
+
+    document.getElementById('print-report').innerHTML = html;
+    window.print();
   }
 
   // ── Boot ──────────────────────────────────────────────────────
