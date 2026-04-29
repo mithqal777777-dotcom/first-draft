@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Budget Tracker</title>
+  <style>
+    /* ── Reset & base ───────────────────────────────────────── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+      font-size: 1.8rem;
+      color: #2d3748;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── Cards ──────────────────────────────────────────────── */
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      color: #4a5568;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+
+    /* ── Summary bar ────────────────────────────────────────── */
+    .summary {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .summary-item span {
+      display: block;
+      font-size: 0.8rem;
+      color: #718096;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .summary-item strong {
+      font-size: 1.4rem;
+    }
+
+    .income-color  { color: #38a169; }
+    .expense-color { color: #e53e3e; }
+    .balance-color { color: #3182ce; }
+
+    /* ── Forms ──────────────────────────────────────────────── */
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    label {
+      font-size: 0.8rem;
+      color: #718096;
+      font-weight: bold;
+    }
+
+    input, select {
+      padding: 8px 10px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      width: 100%;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #63b3ed;
+      box-shadow: 0 0 0 2px rgba(99,179,237,0.3);
+    }
+
+    button {
+      padding: 9px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-income  { background: #38a169; color: #fff; }
+    .btn-expense { background: #e53e3e; color: #fff; }
+    .btn-income:hover  { background: #2f855a; }
+    .btn-expense:hover { background: #c53030; }
+
+    /* ── Transactions list ──────────────────────────────────── */
+    #transactions-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .transaction-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: #f7fafc;
+      border-left: 4px solid transparent;
+      font-size: 0.92rem;
+    }
+
+    .transaction-item.income  { border-left-color: #38a169; }
+    .transaction-item.expense { border-left-color: #e53e3e; }
+
+    .tx-left { display: flex; flex-direction: column; gap: 2px; }
+    .tx-description { font-weight: bold; }
+    .tx-meta { font-size: 0.78rem; color: #718096; }
+
+    .tx-right { display: flex; align-items: center; gap: 12px; }
+    .tx-amount { font-weight: bold; font-size: 1rem; }
+    .tx-amount.income  { color: #38a169; }
+    .tx-amount.expense { color: #e53e3e; }
+
+    .btn-delete {
+      background: transparent;
+      color: #a0aec0;
+      padding: 2px 6px;
+      font-size: 1rem;
+    }
+    .btn-delete:hover { color: #e53e3e; }
+
+    .empty-message {
+      text-align: center;
+      color: #a0aec0;
+      padding: 20px 0;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+<h1>My Budget Tracker</h1>
+
+<div class="container">
+
+  <!-- ── Summary ── -->
+  <div class="card">
+    <div class="summary">
+      <div class="summary-item">
+        <span>Total Income</span>
+        <strong class="income-color" id="total-income">$0.00</strong>
+      </div>
+      <div class="summary-item">
+        <span>Total Expenses</span>
+        <strong class="expense-color" id="total-expenses">$0.00</strong>
+      </div>
+      <div class="summary-item">
+        <span>Balance</span>
+        <strong class="balance-color" id="balance">$0.00</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Add Income ── -->
+  <div class="card">
+    <h2>Add Income</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="income-desc">Description</label>
+        <input type="text" id="income-desc" placeholder="e.g. Salary, Freelance" />
+      </div>
+      <div class="form-group">
+        <label for="income-category">Category</label>
+        <select id="income-category">
+          <option value="Salary">Salary</option>
+          <option value="Freelance">Freelance</option>
+          <option value="Investment">Investment</option>
+          <option value="Gift">Gift</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="income-amount">Amount ($)</label>
+        <input type="number" id="income-amount" placeholder="0.00" min="0" step="0.01" />
+      </div>
+      <button class="btn-income" onclick="addEntry('income')">+ Add</button>
+    </div>
+  </div>
+
+  <!-- ── Add Expense ── -->
+  <div class="card">
+    <h2>Add Expense</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="expense-desc">Description</label>
+        <input type="text" id="expense-desc" placeholder="e.g. Rent, Groceries" />
+      </div>
+      <div class="form-group">
+        <label for="expense-category">Category</label>
+        <select id="expense-category">
+          <option value="Housing">Housing</option>
+          <option value="Food">Food</option>
+          <option value="Transport">Transport</option>
+          <option value="Health">Health</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Shopping">Shopping</option>
+          <option value="Utilities">Utilities</option>
+          <option value="Education">Education</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="expense-amount">Amount ($)</label>
+        <input type="number" id="expense-amount" placeholder="0.00" min="0" step="0.01" />
+      </div>
+      <button class="btn-expense" onclick="addEntry('expense')">+ Add</button>
+    </div>
+  </div>
+
+  <!-- ── Transaction History ── -->
+  <div class="card">
+    <h2>Transaction History</h2>
+    <ul id="transactions-list">
+      <li class="empty-message">No transactions yet. Add one above!</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+  // All transactions are stored in this array
+  let transactions = [];
+
+  // Called when the user clicks "Add" on either form
+  function addEntry(type) {
+    const desc     = document.getElementById(type + '-desc').value.trim();
+    const category = document.getElementById(type + '-category').value;
+    const amount   = parseFloat(document.getElementById(type + '-amount').value);
+
+    // Basic validation
+    if (!desc) {
+      alert('Please enter a description.');
+      return;
+    }
+    if (!amount || amount <= 0) {
+      alert('Please enter a valid amount greater than 0.');
+      return;
+    }
+
+    // Build a transaction object
+    const transaction = {
+      id: Date.now(),           // unique ID based on timestamp
+      type: type,               // 'income' or 'expense'
+      description: desc,
+      category: category,
+      amount: amount,
+      date: new Date().toLocaleDateString()
+    };
+
+    transactions.push(transaction);
+
+    // Clear the form inputs
+    document.getElementById(type + '-desc').value   = '';
+    document.getElementById(type + '-amount').value = '';
+
+    render();
+  }
+
+  // Remove a transaction by its id
+  function deleteEntry(id) {
+    transactions = transactions.filter(function(t) { return t.id !== id; });
+    render();
+  }
+
+  // Format a number as a dollar amount, e.g. 1234.5 → "$1,234.50"
+  function formatMoney(amount) {
+    return '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  // Re-draw everything on screen
+  function render() {
+    // Calculate totals
+    let totalIncome  = 0;
+    let totalExpenses = 0;
+
+    transactions.forEach(function(t) {
+      if (t.type === 'income') {
+        totalIncome += t.amount;
+      } else {
+        totalExpenses += t.amount;
+      }
+    });
+
+    const balance = totalIncome - totalExpenses;
+
+    // Update summary numbers
+    document.getElementById('total-income').textContent   = formatMoney(totalIncome);
+    document.getElementById('total-expenses').textContent = formatMoney(totalExpenses);
+    document.getElementById('balance').textContent        = formatMoney(balance);
+
+    // Change balance color based on positive / negative
+    const balanceEl = document.getElementById('balance');
+    balanceEl.className = balance >= 0 ? 'balance-color' : 'expense-color';
+
+    // Re-build the transactions list
+    const list = document.getElementById('transactions-list');
+
+    if (transactions.length === 0) {
+      list.innerHTML = '<li class="empty-message">No transactions yet. Add one above!</li>';
+      return;
+    }
+
+    // Show newest first
+    const sorted = transactions.slice().reverse();
+
+    list.innerHTML = sorted.map(function(t) {
+      const sign = t.type === 'income' ? '+' : '-';
+      return `
+        <li class="transaction-item ${t.type}">
+          <div class="tx-left">
+            <span class="tx-description">${t.description}</span>
+            <span class="tx-meta">${t.category} &bull; ${t.date}</span>
+          </div>
+          <div class="tx-right">
+            <span class="tx-amount ${t.type}">${sign}${formatMoney(t.amount)}</span>
+            <button class="btn-delete" onclick="deleteEntry(${t.id})" title="Delete">&#x2715;</button>
+          </div>
+        </li>
+      `;
+    }).join('');
+  }
+</script>
+
+</body>
+</html>
